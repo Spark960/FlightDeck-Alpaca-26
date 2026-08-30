@@ -99,6 +99,7 @@ class AlpacaGateway:
                 self.settings.alpaca_api_key,
                 self.settings.alpaca_secret_key,
                 paper=self.settings.alpaca_paper,
+                url_override=_sdk_base_url(self.settings.alpaca_trading_base_url),
             )
         return self._trading_client
 
@@ -111,6 +112,7 @@ class AlpacaGateway:
             self._stock_client = StockHistoricalDataClient(
                 self.settings.alpaca_api_key,
                 self.settings.alpaca_secret_key,
+                url_override=_sdk_base_url(self.settings.alpaca_data_base_url),
             )
         return self._stock_client
 
@@ -123,6 +125,7 @@ class AlpacaGateway:
             self._option_client = OptionHistoricalDataClient(
                 self.settings.alpaca_api_key,
                 self.settings.alpaca_secret_key,
+                url_override=_sdk_base_url(self.settings.alpaca_data_base_url),
             )
         return self._option_client
 
@@ -133,3 +136,10 @@ def _model_dump(value: Any) -> dict[str, Any]:
     if hasattr(value, "dict"):
         return value.dict()
     return dict(value)
+
+
+def _sdk_base_url(url: str) -> str:
+    normalized = url.rstrip("/")
+    if normalized.endswith("/v2"):
+        return normalized.removesuffix("/v2")
+    return normalized

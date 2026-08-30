@@ -38,16 +38,16 @@ Checkpoint:
 
 ## Phase 2: Persistence And Audit
 
-- [ ] SQLite connection created.
-- [ ] Schema created.
-- [ ] Agent run table created.
-- [ ] Market snapshots persisted.
-- [ ] Proposals persisted.
+- [x] SQLite connection created.
+- [x] Schema created.
+- [x] Agent run table created.
+- [x] Market snapshots persisted.
+- [x] Proposals persisted.
 - [ ] Risk checks persisted.
 - [ ] Orders persisted.
-- [ ] Position snapshots persisted.
-- [ ] Audit list endpoint created.
-- [ ] Audit detail endpoint created.
+- [x] Position snapshots persisted.
+- [x] Audit list endpoint created.
+- [x] Audit detail endpoint created.
 
 Checkpoint:
 
@@ -55,18 +55,18 @@ Checkpoint:
 
 ## Phase 3: Market Scanner
 
-- [ ] Liquid universe defined.
+- [x] Liquid universe defined.
 - [ ] Historical bars fetched.
-- [ ] Current quotes/snapshots fetched.
+- [x] Current quotes/snapshots fetched.
 - [ ] 1-day return computed.
 - [ ] 5-day return computed.
 - [ ] Volume ratio computed.
 - [ ] Moving-average slope computed.
 - [ ] Volatility proxy computed.
-- [ ] Bullish score computed.
-- [ ] Bearish score computed.
-- [ ] Candidates ranked.
-- [ ] No-trade state supported.
+- [x] Bullish score computed.
+- [x] Bearish score computed.
+- [x] Candidates ranked.
+- [x] No-trade state supported.
 
 Checkpoint:
 
@@ -74,18 +74,18 @@ Checkpoint:
 
 ## Phase 4: Options Selector
 
-- [ ] Option-chain fetch integrated.
-- [ ] Expiration filter implemented.
-- [ ] Tradable contract filter implemented.
-- [ ] Bid/ask spread filter implemented.
+- [x] Option-chain fetch integrated.
+- [x] Expiration filter implemented.
+- [x] Tradable contract filter implemented.
+- [x] Bid/ask spread filter implemented.
 - [ ] Quote freshness filter implemented.
 - [ ] Open interest filter implemented if available.
-- [ ] Bull call spread selector implemented.
-- [ ] Bear put spread selector implemented.
+- [x] Bull call spread selector implemented.
+- [x] Bear put spread selector implemented.
 - [ ] Single-leg fallback implemented.
-- [ ] Max loss calculated.
-- [ ] Max profit calculated where possible.
-- [ ] Break-even calculated where possible.
+- [x] Max loss calculated.
+- [x] Max profit calculated where possible.
+- [x] Break-even calculated where possible.
 - [ ] Greeks surfaced where available.
 
 Checkpoint:

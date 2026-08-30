@@ -59,13 +59,53 @@ alpaca26/
 
 ## Local Setup
 
-The application scaffold is created in the next build phase. Once backend and frontend projects exist:
-
 ```bash
 cp .env.example .env
 ```
 
-Then add Alpaca paper credentials to `.env`. The app must still run in demo mode without credentials.
+Then add Alpaca paper credentials to `.env`.
+
+Useful toggles:
+
+- `DEMO_MODE=false` calls Alpaca with the configured paper credentials.
+- `DEMO_MODE=true` uses built-in demo responses for market-closed demos.
+- `AGENT_MODEL=gemini-3.7-flash` works with Google's OpenAI-compatible Gemini endpoint.
+
+Run the backend:
+
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload
+```
+
+On Windows PowerShell:
+
+```powershell
+cd backend
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+python -m uvicorn app.main:app --reload
+```
+
+## API Spine
+
+- `GET /health`
+- `GET /api/settings`
+- `GET /api/account`
+- `GET /api/clock`
+- `GET /api/positions`
+- `GET /api/orders`
+- `GET /api/market/snapshot?symbols=SPY,QQQ,AAPL`
+- `GET /api/options/contracts/{symbol}`
+- `GET /api/options/chain/{symbol}`
+- `POST /api/scan`
+- `POST /api/proposals`
+- `GET /api/audit/runs`
+- `GET /api/audit/runs/{run_id}`
 
 ## Safety Defaults
 

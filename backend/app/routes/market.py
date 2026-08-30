@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.alpaca_client import AlpacaCredentialError, AlpacaGateway
 from app.dependencies import get_alpaca_gateway
+from app.storage.audit import complete_run, create_run, record_market_snapshot
 
 router = APIRouter(prefix="/api/market", tags=["market"])
 
@@ -18,7 +19,11 @@ def get_snapshots(
         raise HTTPException(status_code=400, detail="Provide at least one symbol.")
 
     try:
-        return gateway.stock_snapshots(parsed_symbols)
+        run_id = create_run("market_snapshot", {"symbols": parsed_symbols})
+        payload = gateway.stock_snapshots(parsed_symbols)
+        record_market_snapshot(run_id, parsed_symbols, payload)
+        complete_run(run_id, {"symbols": parsed_symbols, "symbol_count": len(parsed_symbols)})
+        return payload
     except AlpacaCredentialError as exc:
         raise HTTPException(status_code=401, detail=str(exc)) from exc
     except Exception as exc:

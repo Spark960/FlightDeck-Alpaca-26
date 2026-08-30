@@ -97,30 +97,30 @@ Purpose: every agent decision needs a persistent paper trail.
 
 Tables:
 
-- [ ] `market_snapshots`
-- [ ] `option_chains`
-- [ ] `trade_proposals`
-- [ ] `risk_checks`
-- [ ] `orders`
-- [ ] `position_snapshots`
-- [ ] `agent_events`
-- [ ] `system_runs`
+- [x] `market_snapshots`
+- [x] `option_chains`
+- [x] `trade_proposals`
+- [x] `risk_checks`
+- [x] `orders`
+- [x] `position_snapshots`
+- [x] `agent_events`
+- [x] `system_runs`
 
 Implementation steps:
 
-- [ ] Add SQLite database setup.
-- [ ] Add migration or schema creation script.
-- [ ] Add repository functions for inserts and reads.
-- [ ] Add run ID for each agent cycle.
-- [ ] Add client order ID format: `FDA-{run_id}-{symbol}-{timestamp}`.
-- [ ] Add audit endpoint: `GET /api/audit/runs`.
-- [ ] Add audit detail endpoint: `GET /api/audit/runs/{run_id}`.
+- [x] Add SQLite database setup.
+- [x] Add migration or schema creation script.
+- [x] Add repository functions for inserts and reads.
+- [x] Add run ID for each agent cycle.
+- [x] Add client order ID format: `FDA-{run_id}-{symbol}-{timestamp}`.
+- [x] Add audit endpoint: `GET /api/audit/runs`.
+- [x] Add audit detail endpoint: `GET /api/audit/runs/{run_id}`.
 
 Exit check:
 
-- [ ] Every market scan writes a run record.
-- [ ] Every proposal and rejection can be retrieved.
-- [ ] Audit detail can power replay UI.
+- [x] Every market scan writes a run record.
+- [x] Every proposal and rejection can be retrieved.
+- [x] Audit detail can power replay UI.
 
 ## Phase 3: Universe And Signal Engine
 
@@ -130,17 +130,17 @@ Purpose: create trade candidates using explainable market features.
 
 Universe v1:
 
-- [ ] SPY
-- [ ] QQQ
-- [ ] IWM
-- [ ] AAPL
-- [ ] MSFT
-- [ ] NVDA
-- [ ] AMD
-- [ ] TSLA
-- [ ] META
-- [ ] AMZN
-- [ ] GOOGL
+- [x] SPY
+- [x] QQQ
+- [x] IWM
+- [x] AAPL
+- [x] MSFT
+- [x] NVDA
+- [x] AMD
+- [x] TSLA
+- [x] META
+- [x] AMZN
+- [x] GOOGL
 
 Features:
 
@@ -151,23 +151,23 @@ Features:
 - [ ] gap from previous close
 - [ ] volume ratio versus 20-day average
 - [ ] realized volatility or ATR proxy
-- [ ] quote freshness
+- [x] quote freshness
 
 Signals:
 
-- [ ] bullish momentum score
-- [ ] bearish momentum score
+- [x] bullish momentum score
+- [x] bearish momentum score
 - [ ] volatility/event score
-- [ ] no-trade score
+- [x] no-trade score
 
 Implementation steps:
 
-- [ ] Build `universe.py`.
-- [ ] Build `signals.py`.
-- [ ] Add endpoint `POST /api/scan`.
-- [ ] Persist scan inputs and outputs.
-- [ ] Sort candidates by score.
-- [ ] Add reason codes for each candidate.
+- [x] Build `universe.py`.
+- [x] Build `signals.py`.
+- [x] Add endpoint `POST /api/scan`.
+- [x] Persist scan inputs and outputs.
+- [x] Sort candidates by score.
+- [x] Add reason codes for each candidate.
 
 Exit check:
 
@@ -183,8 +183,8 @@ Purpose: translate a directional signal into a valid options structure.
 
 Primary strategies:
 
-- [ ] Bull call debit spread for bullish signals.
-- [ ] Bear put debit spread for bearish signals.
+- [x] Bull call debit spread for bullish signals.
+- [x] Bear put debit spread for bearish signals.
 
 Fallback strategies:
 
@@ -193,11 +193,11 @@ Fallback strategies:
 
 Contract filters:
 
-- [ ] Expiration 7-30 days out.
-- [ ] Tradable contracts only.
+- [x] Expiration 7-30 days out.
+- [x] Tradable contracts only.
 - [ ] Near-the-money long leg.
 - [ ] Further out-of-the-money short leg.
-- [ ] Max bid/ask spread threshold.
+- [x] Max bid/ask spread threshold.
 - [ ] Minimum open interest when available.
 - [ ] Minimum option quote freshness.
 - [ ] Net debit below max risk budget.
@@ -205,22 +205,22 @@ Contract filters:
 
 Proposal output:
 
-- [ ] underlying symbol
-- [ ] strategy type
-- [ ] direction
-- [ ] expiration
-- [ ] legs
-- [ ] estimated net debit
-- [ ] max loss
-- [ ] max profit when calculable
-- [ ] break-even when calculable
+- [x] underlying symbol
+- [x] strategy type
+- [x] direction
+- [x] expiration
+- [x] legs
+- [x] estimated net debit
+- [x] max loss
+- [x] max profit when calculable
+- [x] break-even when calculable
 - [ ] selected Greeks when available
-- [ ] selection reason
+- [x] selection reason
 
 Exit check:
 
-- [ ] Given a bullish candidate, selector returns a bull call spread or a clear rejection.
-- [ ] Given a bearish candidate, selector returns a bear put spread or a clear rejection.
+- [x] Given a bullish candidate, selector returns a bull call spread or a clear rejection.
+- [x] Given a bearish candidate, selector returns a bear put spread or a clear rejection.
 - [ ] No malformed or stale contract can pass selection.
 
 ## Phase 5: AI Analyst And Critic
