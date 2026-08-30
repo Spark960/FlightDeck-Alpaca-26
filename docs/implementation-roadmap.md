@@ -40,19 +40,19 @@ Purpose: remove ambiguity before coding.
 
 Steps:
 
-- [ ] Confirm project name: `FlightDeck Alpha`.
-- [ ] Confirm stack: FastAPI backend, React/Vite frontend, SQLite, `alpaca-py`.
-- [ ] Confirm primary strategy: bull call and bear put debit spreads.
-- [ ] Confirm fallback strategy: single-leg long call/put if multi-leg order support blocks us.
-- [ ] Confirm demo mode requirement: every main screen must work without market being open.
-- [ ] Create `.env.example`.
-- [ ] Create initial README.
-- [ ] Create architecture diagram placeholder.
+- [x] Confirm project name: `FlightDeck Alpha`.
+- [x] Confirm stack: FastAPI backend, React/Vite frontend, SQLite, `alpaca-py`.
+- [x] Confirm primary strategy: bull call and bear put debit spreads.
+- [x] Confirm fallback strategy: single-leg long call/put if multi-leg order support blocks us.
+- [x] Confirm demo mode requirement: every main screen must work without market being open.
+- [x] Create `.env.example`.
+- [x] Create initial README.
+- [x] Create architecture diagram placeholder.
 
 Exit check:
 
-- [ ] A teammate can explain the product in one sentence.
-- [ ] The codebase can be scaffolded without further product debate.
+- [x] A teammate can explain the product in one sentence.
+- [x] The codebase can be scaffolded without further product debate.
 
 ## Phase 1: Alpaca Connectivity Spine
 
@@ -62,32 +62,32 @@ Purpose: prove we can talk to Alpaca before building intelligence on top.
 
 Backend endpoints:
 
-- [ ] `GET /health`
-- [ ] `GET /api/account`
-- [ ] `GET /api/clock`
-- [ ] `GET /api/positions`
-- [ ] `GET /api/orders`
-- [ ] `GET /api/market/snapshot?symbols=SPY,QQQ,AAPL`
-- [ ] `GET /api/options/contracts/{symbol}`
-- [ ] `GET /api/options/chain/{symbol}`
+- [x] `GET /health`
+- [x] `GET /api/account`
+- [x] `GET /api/clock`
+- [x] `GET /api/positions`
+- [x] `GET /api/orders`
+- [x] `GET /api/market/snapshot?symbols=SPY,QQQ,AAPL`
+- [x] `GET /api/options/contracts/{symbol}`
+- [x] `GET /api/options/chain/{symbol}`
 
 Implementation steps:
 
-- [ ] Add settings loader for Alpaca keys and paper mode.
-- [ ] Add Alpaca trading client.
-- [ ] Add Alpaca stock data client.
-- [ ] Add Alpaca option data/client wrapper.
+- [x] Add settings loader for Alpaca keys and paper mode.
+- [x] Add Alpaca trading client.
+- [x] Add Alpaca stock data client.
+- [x] Add Alpaca option data/client wrapper.
 - [ ] Add typed response models.
-- [ ] Add structured error responses for missing credentials and API failures.
-- [ ] Add demo/mock responses for market closed or missing credentials.
+- [x] Add structured error responses for missing credentials and API failures.
+- [x] Add demo/mock responses for market closed or missing credentials.
 
 Exit check:
 
-- [ ] Backend starts locally.
-- [ ] Health endpoint passes.
-- [ ] Account endpoint works with credentials or returns a helpful credential error.
-- [ ] At least one stock snapshot can be fetched or mocked.
-- [ ] At least one options chain can be fetched or mocked.
+- [x] Backend starts locally.
+- [x] Health endpoint passes.
+- [x] Account endpoint works with credentials or returns a helpful credential error.
+- [x] At least one stock snapshot can be fetched or mocked.
+- [x] At least one options chain can be fetched or mocked.
 
 ## Phase 2: Data Store And Audit Foundation
 
@@ -499,4 +499,3 @@ Exit check:
 - [ ] Someone can review the submission in 5 minutes and understand why it should win.
 - [ ] All hard requirements are visibly satisfied.
 - [ ] The video shows an actual end-to-end agent cycle.
-

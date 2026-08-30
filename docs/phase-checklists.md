@@ -4,33 +4,33 @@ Use this file during implementation. Check items as they land.
 
 ## Phase 0: Scope Lock
 
-- [ ] Product name finalized.
-- [ ] One-liner finalized.
-- [ ] Primary strategy finalized.
-- [ ] Fallback strategy finalized.
-- [ ] Tech stack finalized.
-- [ ] README stub created.
-- [ ] `.env.example` created.
-- [ ] Demo mode requirement accepted.
+- [x] Product name finalized.
+- [x] One-liner finalized.
+- [x] Primary strategy finalized.
+- [x] Fallback strategy finalized.
+- [x] Tech stack finalized.
+- [x] README stub created.
+- [x] `.env.example` created.
+- [x] Demo mode requirement accepted.
 
 Checkpoint:
 
-- [ ] We can start coding without redesigning the product.
+- [x] We can start coding without redesigning the product.
 
 ## Phase 1: Alpaca Connectivity
 
-- [ ] Backend project created.
-- [ ] Settings loader created.
-- [ ] Alpaca keys loaded from environment.
-- [ ] Paper mode defaults to true.
-- [ ] Account endpoint works.
-- [ ] Clock endpoint works.
-- [ ] Positions endpoint works.
-- [ ] Orders endpoint works.
-- [ ] Stock snapshot endpoint works.
-- [ ] Options contracts endpoint works.
-- [ ] Options chain endpoint works.
-- [ ] Missing credentials return helpful errors.
+- [x] Backend project created.
+- [x] Settings loader created.
+- [x] Alpaca keys loaded from environment.
+- [x] Paper mode defaults to true.
+- [x] Account endpoint works.
+- [x] Clock endpoint works.
+- [x] Positions endpoint works.
+- [x] Orders endpoint works.
+- [x] Stock snapshot endpoint works.
+- [x] Options contracts endpoint works.
+- [x] Options chain endpoint works.
+- [x] Missing credentials return helpful errors.
 
 Checkpoint:
 
@@ -235,4 +235,3 @@ Checkpoint:
 Checkpoint:
 
 - [ ] Submission can be uploaded without missing assets.
-
