@@ -91,6 +91,16 @@ pip install -r requirements.txt
 python -m uvicorn app.main:app --reload
 ```
 
+Run the frontend:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The Vite dev server proxies `/api` and `/health` to `http://127.0.0.1:8000`.
+
 ## API Spine
 
 - `GET /health`
@@ -106,6 +116,27 @@ python -m uvicorn app.main:app --reload
 - `POST /api/proposals`
 - `GET /api/audit/runs`
 - `GET /api/audit/runs/{run_id}`
+- `GET /api/integrations/cli/status`
+- `POST /api/integrations/cli/run`
+- `GET /api/integrations/cli/latest`
+- `POST /api/monitor/run`
+
+## Alpaca CLI Integration
+
+FlightDeck Alpha uses `alpaca-py` for order execution and the [Alpaca CLI](https://github.com/alpacahq/cli) as the hackathon MCP/CLI proof path. CLI JSON output is persisted to `agent_events` for audit replay.
+
+```bash
+# Install Alpaca CLI (see https://github.com/alpacahq/cli)
+# Set ALPACA_API_KEY and ALPACA_SECRET_KEY in .env
+
+# Run proof commands (account, positions, orders, clock, options chain)
+python scripts/alpaca_cli_proof.py
+
+# Or via API
+curl -X POST http://127.0.0.1:8000/api/integrations/cli/run
+```
+
+Monitor cycles can optionally include CLI proof with `POST /api/monitor/run?cli_proof=true`.
 
 ## Safety Defaults
 

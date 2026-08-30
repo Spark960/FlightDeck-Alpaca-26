@@ -64,6 +64,10 @@ def main() -> None:
         show("review demo", client.post(f"{BASE}/api/proposals/review", json={"proposal": demo}))
         show("risk demo", client.post(f"{BASE}/api/risk/check", json={"proposal": demo}))
 
+    show("cli status", client.get(f"{BASE}/api/integrations/cli/status"))
+    show("cli proof", client.post(f"{BASE}/api/integrations/cli/run"))
+    show("monitor", client.post(f"{BASE}/api/monitor/run", params={"sync_orders": "false", "cli_proof": "true"}))
+
 
 if __name__ == "__main__":
     main()

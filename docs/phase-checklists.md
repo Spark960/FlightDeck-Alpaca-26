@@ -140,7 +140,7 @@ Checkpoint:
 - [x] Order status polling implemented.
 - [x] Rejection handling implemented.
 - [x] Partial-fill handling implemented.
-- [ ] MCP or CLI proof path implemented.
+- [x] MCP or CLI proof path implemented.
 
 Checkpoint:
 
@@ -166,19 +166,19 @@ Checkpoint:
 
 ## Phase 9: Frontend
 
-- [ ] React/Vite app created.
-- [ ] API client created.
-- [ ] Cockpit page built.
-- [ ] Replay page built.
-- [ ] Positions page built.
-- [ ] Risk console built.
-- [ ] Settings page built.
-- [ ] Demo mode data wired.
-- [ ] Loading states added.
-- [ ] Empty states added.
-- [ ] Error states added.
-- [ ] Mobile layout checked.
-- [ ] Desktop layout checked.
+- [x] React/Vite app created.
+- [x] API client created.
+- [x] Cockpit page built.
+- [x] Replay page built.
+- [x] Positions page built.
+- [x] Risk console built.
+- [x] Settings page built.
+- [x] Demo mode data wired.
+- [x] Loading states added.
+- [x] Empty states added.
+- [x] Error states added.
+- [x] Mobile layout checked.
+- [x] Desktop layout checked.
 
 Checkpoint:
 

@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 from app.alpaca_client import AlpacaCredentialError, AlpacaGateway
 from app.config import get_settings
 from app.dependencies import get_alpaca_gateway
+from app.integrations.alpaca_cli import run_cli_proof
 from app.storage.audit import (
     client_order_id,
     complete_run,
@@ -45,18 +46,27 @@ class MonitorResponse(BaseModel):
     summary: dict[str, Any]
     synced_orders: list[dict[str, Any]] = Field(default_factory=list)
     executed_closes: list[dict[str, Any]] = Field(default_factory=list)
+    cli_proof: dict[str, Any] | None = None
 
 
 @router.post("/run", response_model=MonitorResponse)
 def run_position_monitor(
     sync_orders: bool = Query(default=True),
+    cli_proof: bool = Query(default=False),
     execute_closes: bool = Query(default=False),
     dry_run: bool = Query(default=True),
     gateway: AlpacaGateway = Depends(get_alpaca_gateway),
 ) -> MonitorResponse:
     settings = get_settings()
-    run_id = create_run("position_monitor", {"sync_orders": sync_orders, "execute_closes": execute_closes})
+    run_id = create_run(
+        "position_monitor",
+        {"sync_orders": sync_orders, "cli_proof": cli_proof, "execute_closes": execute_closes},
+    )
     try:
+        cli_proof_result = None
+        if cli_proof:
+            cli_proof_result = run_cli_proof(settings, run_id=run_id, persist=True)
+
         account = gateway.account()
         positions = gateway.positions()
         orders = gateway.orders()
@@ -118,6 +128,7 @@ def run_position_monitor(
             run_id=run_id,
             synced_orders=synced,
             executed_closes=executed_closes,
+            cli_proof=cli_proof_result,
             **result,
         )
     except AlpacaCredentialError as exc:

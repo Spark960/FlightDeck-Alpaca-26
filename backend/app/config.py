@@ -34,6 +34,7 @@ class Settings:
     time_stop_days: int = Field(default=14)
     expiration_risk_days: int = Field(default=3)
     monitor_action_cooldown_hours: int = Field(default=24)
+    alpaca_cli_binary: str = Field(default="alpaca")
     cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:5173"])
 
     @property
@@ -79,6 +80,7 @@ def get_settings() -> Settings:
         time_stop_days=_env_int("TIME_STOP_DAYS", 14),
         expiration_risk_days=_env_int("EXPIRATION_RISK_DAYS", 3),
         monitor_action_cooldown_hours=_env_int("MONITOR_ACTION_COOLDOWN_HOURS", 24),
+        alpaca_cli_binary=_env_str("ALPACA_CLI_BINARY", "alpaca") or "alpaca",
     )
 
 

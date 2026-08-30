@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
 from app.db import init_db
-from app.routes import account, audit, market, monitor, options, proposals, risk, scan, trades
+from app.routes import account, audit, integrations, market, monitor, options, proposals, risk, scan, trades
 
 settings = get_settings()
 
@@ -30,6 +30,7 @@ app.include_router(risk.router)
 app.include_router(scan.router)
 app.include_router(trades.router)
 app.include_router(monitor.router)
+app.include_router(integrations.router)
 
 
 @app.on_event("startup")
@@ -60,4 +61,5 @@ def public_settings() -> dict[str, str | bool]:
         "agent_credentials_configured": settings.has_agent_credentials,
         "agent_base_url": settings.agent_base_url,
         "agent_model": settings.agent_model,
+        "alpaca_cli_binary": settings.alpaca_cli_binary,
     }
