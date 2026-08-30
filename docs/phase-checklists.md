@@ -43,7 +43,7 @@ Checkpoint:
 - [x] Agent run table created.
 - [x] Market snapshots persisted.
 - [x] Proposals persisted.
-- [ ] Risk checks persisted.
+- [x] Risk checks persisted.
 - [ ] Orders persisted.
 - [x] Position snapshots persisted.
 - [x] Audit list endpoint created.
@@ -56,13 +56,13 @@ Checkpoint:
 ## Phase 3: Market Scanner
 
 - [x] Liquid universe defined.
-- [ ] Historical bars fetched.
+- [x] Historical bars fetched.
 - [x] Current quotes/snapshots fetched.
-- [ ] 1-day return computed.
-- [ ] 5-day return computed.
-- [ ] Volume ratio computed.
-- [ ] Moving-average slope computed.
-- [ ] Volatility proxy computed.
+- [x] 1-day return computed.
+- [x] 5-day return computed.
+- [x] Volume ratio computed.
+- [x] Moving-average slope computed.
+- [x] Volatility proxy computed.
 - [x] Bullish score computed.
 - [x] Bearish score computed.
 - [x] Candidates ranked.
@@ -78,15 +78,15 @@ Checkpoint:
 - [x] Expiration filter implemented.
 - [x] Tradable contract filter implemented.
 - [x] Bid/ask spread filter implemented.
-- [ ] Quote freshness filter implemented.
-- [ ] Open interest filter implemented if available.
+- [x] Quote freshness filter implemented.
+- [x] Open interest filter implemented if available.
 - [x] Bull call spread selector implemented.
 - [x] Bear put spread selector implemented.
-- [ ] Single-leg fallback implemented.
+- [x] Single-leg fallback implemented.
 - [x] Max loss calculated.
 - [x] Max profit calculated where possible.
 - [x] Break-even calculated where possible.
-- [ ] Greeks surfaced where available.
+- [x] Greeks surfaced where available.
 
 Checkpoint:
 
@@ -94,15 +94,15 @@ Checkpoint:
 
 ## Phase 5: AI Analyst And Critic
 
-- [ ] Proposal JSON schema defined.
-- [ ] Analyst prompt created.
-- [ ] Analyst output validated.
-- [ ] Invalid output logged.
-- [ ] Critic prompt created.
-- [ ] Critic output validated.
-- [ ] Critic can pass proposal.
-- [ ] Critic can reject weak proposal.
-- [ ] Proposal detail endpoint created.
+- [x] Proposal JSON schema defined.
+- [x] Analyst prompt created.
+- [x] Analyst output validated.
+- [x] Invalid output logged.
+- [x] Critic prompt created.
+- [x] Critic output validated.
+- [x] Critic can pass proposal.
+- [x] Critic can reject weak proposal.
+- [x] Proposal detail endpoint created.
 
 Checkpoint:
 
@@ -110,20 +110,20 @@ Checkpoint:
 
 ## Phase 6: Risk Gate
 
-- [ ] Paper-only check implemented.
-- [ ] Account equity check implemented.
-- [ ] Buying-power check implemented.
-- [ ] Market-open check implemented.
-- [ ] End-of-day cutoff implemented.
-- [ ] Max risk per trade implemented.
-- [ ] Max daily loss implemented.
-- [ ] Max drawdown implemented.
-- [ ] Max open trades implemented.
-- [ ] Max same-underlying exposure implemented.
-- [ ] Max premium deployed implemented.
-- [ ] No naked short option check implemented.
-- [ ] Unsupported strategy rejection implemented.
-- [ ] Unit tests added.
+- [x] Paper-only check implemented.
+- [x] Account equity check implemented.
+- [x] Buying-power check implemented.
+- [x] Market-open check implemented.
+- [x] End-of-day cutoff implemented.
+- [x] Max risk per trade implemented.
+- [x] Max daily loss implemented.
+- [x] Max drawdown implemented.
+- [x] Max open trades implemented.
+- [x] Max same-underlying exposure implemented.
+- [x] Max premium deployed implemented.
+- [x] No naked short option check implemented.
+- [x] Unsupported strategy rejection implemented.
+- [x] Unit tests added.
 
 Checkpoint:
 
@@ -131,38 +131,38 @@ Checkpoint:
 
 ## Phase 7: Execution
 
-- [ ] Order payload builder created.
-- [ ] Limit price near midpoint implemented.
-- [ ] Client order ID implemented.
-- [ ] Dry-run endpoint implemented.
-- [ ] Paper order submit implemented.
-- [ ] Alpaca response persisted.
-- [ ] Order status polling implemented.
-- [ ] Rejection handling implemented.
-- [ ] Partial-fill handling implemented.
+- [x] Order payload builder created.
+- [x] Limit price near midpoint implemented.
+- [x] Client order ID implemented.
+- [x] Dry-run endpoint implemented.
+- [x] Paper order submit implemented.
+- [x] Alpaca response persisted.
+- [x] Order status polling implemented.
+- [x] Rejection handling implemented.
+- [x] Partial-fill handling implemented.
 - [ ] MCP or CLI proof path implemented.
 
 Checkpoint:
 
-- [ ] We can submit a paper options order and link it to the original proposal.
+- [x] We can submit a paper options order and link it to the original proposal.
 
 ## Phase 8: Position Monitor
 
-- [ ] Monitor loop created.
-- [ ] Position polling implemented.
-- [ ] Order polling implemented.
-- [ ] Fill polling implemented.
-- [ ] P&L update implemented.
-- [ ] Take-profit rule implemented.
-- [ ] Stop-loss rule implemented.
-- [ ] Time-stop rule implemented.
-- [ ] Expiration-risk rule implemented.
-- [ ] Duplicate-action prevention implemented.
-- [ ] Monitor events persisted.
+- [x] Monitor loop created.
+- [x] Position polling implemented.
+- [x] Order polling implemented.
+- [x] Fill polling implemented.
+- [x] P&L update implemented.
+- [x] Take-profit rule implemented.
+- [x] Stop-loss rule implemented.
+- [x] Time-stop rule implemented.
+- [x] Expiration-risk rule implemented.
+- [x] Duplicate-action prevention implemented.
+- [x] Monitor events persisted.
 
 Checkpoint:
 
-- [ ] The system can explain whether each position should be held, closed, or watched.
+- [x] The system can explain whether each position should be held, closed, or watched.
 
 ## Phase 9: Frontend
 

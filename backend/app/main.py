@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import get_settings
 from app.db import init_db
-from app.routes import account, audit, market, options, proposals, scan
+from app.routes import account, audit, market, monitor, options, proposals, risk, scan, trades
 
 settings = get_settings()
 
@@ -26,7 +26,10 @@ app.include_router(audit.router)
 app.include_router(market.router)
 app.include_router(options.router)
 app.include_router(proposals.router)
+app.include_router(risk.router)
 app.include_router(scan.router)
+app.include_router(trades.router)
+app.include_router(monitor.router)
 
 
 @app.on_event("startup")

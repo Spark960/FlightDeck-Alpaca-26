@@ -33,7 +33,8 @@ def scan_market(
 
     try:
         snapshots = gateway.stock_snapshots(symbols)
-        candidates = rank_candidates(snapshots)
+        historical_bars = gateway.stock_bars(symbols, days=30)
+        candidates = rank_candidates(snapshots, historical_bars)
         selected = candidates[: scan_request.limit]
         if not selected or selected[0]["direction"] == "none":
             selected.append(no_trade_candidate("no_candidate_cleared_minimum_score"))
@@ -44,7 +45,7 @@ def scan_market(
             "candidates": selected,
             "candidate_count": len(selected),
         }
-        record_market_snapshot(run_id, symbols, snapshots)
+        record_market_snapshot(run_id, symbols, {"snapshots": snapshots, "historical_bars": historical_bars})
         record_agent_event("market_scan_ranked", payload, run_id=run_id)
         complete_run(run_id, {"candidate_count": len(selected), "top_symbol": selected[0]["symbol"]})
         return payload

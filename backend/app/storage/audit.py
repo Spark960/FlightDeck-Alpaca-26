@@ -236,6 +236,124 @@ def get_run_detail(run_id: str) -> dict[str, Any] | None:
         }
 
 
+TERMINAL_ORDER_STATUSES = frozenset(
+    {"filled", "canceled", "cancelled", "expired", "rejected", "replaced", "done_for_day"}
+)
+
+
+def get_order(order_id: str) -> dict[str, Any] | None:
+    with connect() as connection:
+        row = connection.execute(
+            """
+            SELECT order_id, run_id, proposal_id, client_order_id,
+                   request_json, response_json, created_at
+            FROM orders
+            WHERE order_id = ?
+            """,
+            (order_id,),
+        ).fetchone()
+    if row is None:
+        return None
+    return _decode_row(row)
+
+
+def list_orders(limit: int = 100) -> list[dict[str, Any]]:
+    with connect() as connection:
+        rows = connection.execute(
+            """
+            SELECT order_id, run_id, proposal_id, client_order_id,
+                   request_json, response_json, created_at
+            FROM orders
+            ORDER BY created_at DESC
+            LIMIT ?
+            """,
+            (limit,),
+        ).fetchall()
+    return [_decode_row(row) for row in rows]
+
+
+def list_orders_needing_sync(limit: int = 50) -> list[dict[str, Any]]:
+    orders = list_orders(limit=limit)
+    return [
+        order
+        for order in orders
+        if str((order.get("response") or {}).get("status", "")).lower() not in TERMINAL_ORDER_STATUSES
+    ]
+
+
+def update_order_response(order_id: str, response_payload: dict[str, Any]) -> None:
+    with connect() as connection:
+        connection.execute(
+            """
+            UPDATE orders
+            SET response_json = ?
+            WHERE order_id = ?
+            """,
+            (_json(response_payload), order_id),
+        )
+
+
+def list_agent_events(
+    event_type: str | None = None,
+    limit: int = 100,
+) -> list[dict[str, Any]]:
+    query = """
+        SELECT id, run_id, event_type, payload_json, created_at
+        FROM agent_events
+    """
+    params: list[Any] = []
+    if event_type:
+        query += " WHERE event_type = ?"
+        params.append(event_type)
+    query += " ORDER BY created_at DESC LIMIT ?"
+    params.append(limit)
+    with connect() as connection:
+        rows = connection.execute(query, params).fetchall()
+    return [_decode_row(row) for row in rows]
+
+
+def has_recent_monitor_action(
+    symbol: str,
+    action: str,
+    cooldown_hours: int,
+) -> bool:
+    from datetime import UTC, datetime, timedelta
+
+    cutoff = datetime.now(tz=UTC) - timedelta(hours=cooldown_hours)
+    events = list_agent_events(event_type="monitor_action", limit=200)
+    for event in events:
+        payload = event.get("payload") or {}
+        if payload.get("symbol") != symbol or payload.get("action") != action:
+            continue
+        created_at = event.get("created_at")
+        if not created_at:
+            continue
+        try:
+            event_time = datetime.fromisoformat(str(created_at))
+        except ValueError:
+            continue
+        if event_time.tzinfo is None:
+            event_time = event_time.replace(tzinfo=UTC)
+        if event_time >= cutoff:
+            return True
+    return False
+
+
+def get_proposal(proposal_id: str) -> dict[str, Any] | None:
+    with connect() as connection:
+        row = connection.execute(
+            """
+            SELECT proposal_id, run_id, payload_json, created_at
+            FROM trade_proposals
+            WHERE proposal_id = ?
+            """,
+            (proposal_id,),
+        ).fetchone()
+    if row is None:
+        return None
+    return _decode_row(row)
+
+
 def _select_payload_rows(connection, query: str, run_id: str) -> list[dict[str, Any]]:
     return [_decode_row(row) for row in connection.execute(query, (run_id,)).fetchall()]
 

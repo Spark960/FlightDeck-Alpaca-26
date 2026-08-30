@@ -10,6 +10,9 @@ def select_debit_spread(
     contracts_payload: dict[str, Any],
     chain_payload: dict[str, Any],
     max_debit: float = 1500.0,
+    allow_single_leg_fallback: bool = True,
+    max_quote_age_seconds: int = 900,
+    min_open_interest: int = 50,
 ) -> dict[str, Any]:
     option_type = "call" if direction == "bullish" else "put"
     strategy_type = "bull_call_debit_spread" if direction == "bullish" else "bear_put_debit_spread"
@@ -24,9 +27,12 @@ def select_debit_spread(
         and contract["bid"] is not None
         and contract["ask"] is not None
         and contract["ask"] > 0
+        and contract["bid"] >= 0
         and _spread_pct(contract["bid"], contract["ask"]) <= 20
+        and _quote_is_fresh(contract["quote_timestamp"], max_quote_age_seconds)
+        and _passes_open_interest(contract["open_interest"], min_open_interest)
     ]
-    candidates.sort(key=lambda contract: (contract["expiration"], contract["strike"]))
+    candidates.sort(key=lambda contract: (contract["expiration"], _moneyness_rank(contract, option_type)))
 
     for expiration in sorted({contract["expiration"] for contract in candidates}):
         expiration_contracts = [contract for contract in candidates if contract["expiration"] == expiration]
@@ -63,10 +69,23 @@ def select_debit_spread(
             "selection_reason": [
                 "expiration_between_7_and_30_days",
                 "tradable_contracts",
+                "fresh_option_quotes",
+                "open_interest_filter_passed",
                 "defined_risk_debit_spread",
                 "net_debit_within_budget",
             ],
         }
+
+    if allow_single_leg_fallback:
+        fallback = _select_single_leg(
+            symbol=symbol,
+            direction=direction,
+            option_type=option_type,
+            contracts=candidates,
+            max_debit=max_debit,
+        )
+        if fallback is not None:
+            return fallback
 
     return {
         "accepted": False,
@@ -106,7 +125,7 @@ def _normalize_contracts(
                 "ask": _float(quote.get("ask_price") or quote.get("ask")),
                 "delta": _float((snapshot.get("greeks") or {}).get("delta") or snapshot.get("delta")),
                 "open_interest": _float(contract.get("open_interest") or snapshot.get("open_interest")),
-                "quote_timestamp": quote.get("timestamp") or snapshot.get("quote_timestamp"),
+                "quote_timestamp": quote.get("timestamp") or quote.get("t") or snapshot.get("quote_timestamp"),
             }
         )
     return normalized
@@ -124,8 +143,9 @@ def _chain_by_symbol(chain_payload: dict[str, Any]) -> dict[str, Any]:
 
 
 def _select_call_pair(contracts: list[dict[str, Any]]) -> tuple[dict[str, Any], dict[str, Any]] | None:
-    for index, long_leg in enumerate(contracts):
-        for short_leg in contracts[index + 1 :]:
+    ascending = sorted(contracts, key=lambda contract: contract["strike"])
+    for index, long_leg in enumerate(ascending):
+        for short_leg in ascending[index + 1 :]:
             if short_leg["strike"] > long_leg["strike"]:
                 return long_leg, short_leg
     return None
@@ -137,6 +157,45 @@ def _select_put_pair(contracts: list[dict[str, Any]]) -> tuple[dict[str, Any], d
         for short_leg in descending[index + 1 :]:
             if short_leg["strike"] < long_leg["strike"]:
                 return long_leg, short_leg
+    return None
+
+
+def _select_single_leg(
+    symbol: str,
+    direction: str,
+    option_type: str,
+    contracts: list[dict[str, Any]],
+    max_debit: float,
+) -> dict[str, Any] | None:
+    strategy_type = "long_call" if direction == "bullish" else "long_put"
+    for contract in sorted(contracts, key=lambda item: (item["expiration"], _moneyness_rank(item, option_type))):
+        net_debit = round(contract["ask"] * 100, 2)
+        if net_debit <= 0 or net_debit > max_debit:
+            continue
+        break_even = (
+            round(contract["strike"] + net_debit / 100, 2)
+            if option_type == "call"
+            else round(contract["strike"] - net_debit / 100, 2)
+        )
+        return {
+            "accepted": True,
+            "underlying_symbol": symbol,
+            "strategy_type": strategy_type,
+            "direction": direction,
+            "expiration": contract["expiration"],
+            "legs": [_proposal_leg(contract, "buy")],
+            "estimated_net_debit": net_debit,
+            "max_loss": net_debit,
+            "max_profit": None,
+            "break_even": break_even,
+            "selection_reason": [
+                "single_leg_fallback",
+                "expiration_between_7_and_30_days",
+                "tradable_contract",
+                "fresh_option_quote",
+                "net_debit_within_budget",
+            ],
+        }
     return None
 
 
@@ -159,6 +218,28 @@ def _spread_pct(bid: float, ask: float) -> float:
     if midpoint <= 0:
         return 100.0
     return ((ask - bid) / midpoint) * 100
+
+
+def _passes_open_interest(open_interest: float | None, minimum: int) -> bool:
+    return open_interest is None or open_interest >= minimum
+
+
+def _quote_is_fresh(timestamp: Any, max_age_seconds: int) -> bool:
+    if not timestamp:
+        return False
+    try:
+        parsed = datetime.fromisoformat(str(timestamp).replace("Z", "+00:00"))
+    except ValueError:
+        return False
+    return (datetime.now(tz=UTC) - parsed.astimezone(UTC)).total_seconds() <= max_age_seconds
+
+
+def _moneyness_rank(contract: dict[str, Any], option_type: str) -> float:
+    delta = contract.get("delta")
+    if delta is not None:
+        target = 0.5 if option_type == "call" else -0.5
+        return abs(delta - target)
+    return abs(contract["strike"] or 0)
 
 
 def _days_to_expiration(expiration: str) -> int:

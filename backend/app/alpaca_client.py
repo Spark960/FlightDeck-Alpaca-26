@@ -9,7 +9,9 @@ from app.demo_data import (
     demo_option_contracts,
     demo_orders,
     demo_positions,
+    demo_stock_bars,
     demo_stock_snapshots,
+    demo_submit_order,
 )
 
 
@@ -54,6 +56,28 @@ class AlpacaGateway:
         snapshots = client.get_stock_snapshot(StockSnapshotRequest(symbol_or_symbols=symbols))
         return {symbol: _model_dump(snapshot) for symbol, snapshot in snapshots.items()}
 
+    def stock_bars(self, symbols: list[str], days: int = 30) -> dict[str, list[dict[str, Any]]]:
+        if self.settings.demo_mode:
+            return demo_stock_bars(symbols, days=days)
+        if not self.settings.has_alpaca_credentials:
+            raise AlpacaCredentialError("Set ALPACA_API_KEY and ALPACA_SECRET_KEY to use Alpaca.")
+
+        from alpaca.data.requests import StockBarsRequest
+        from alpaca.data.timeframe import TimeFrame
+
+        client = self._get_stock_client()
+        bars = client.get_stock_bars(
+            StockBarsRequest(
+                symbol_or_symbols=symbols,
+                timeframe=TimeFrame.Day,
+                limit=days,
+            )
+        )
+        raw = _model_dump(bars).get("data", {})
+        if isinstance(raw, dict):
+            return {symbol: [_model_dump(row) for row in rows] for symbol, rows in raw.items()}
+        return {}
+
     def option_contracts(self, symbol: str) -> dict[str, Any]:
         if self.settings.demo_mode:
             return demo_option_contracts(symbol)
@@ -65,6 +89,23 @@ class AlpacaGateway:
         client = self._get_trading_client()
         contracts = client.get_option_contracts(GetOptionContractsRequest(underlying_symbols=[symbol]))
         return _model_dump(contracts)
+
+    def submit_order(self, payload: dict[str, Any]) -> dict[str, Any]:
+        if self.settings.demo_mode:
+            return demo_submit_order(payload)
+        if not self.settings.has_alpaca_credentials:
+            raise AlpacaCredentialError("Set ALPACA_API_KEY and ALPACA_SECRET_KEY to use Alpaca.")
+        return _model_dump(self._get_trading_client().submit_order(_build_order_request(payload)))
+
+    def get_order(self, order_id: str) -> dict[str, Any]:
+        if self.settings.demo_mode:
+            for order in demo_orders():
+                if order.get("id") == order_id:
+                    return order
+            return {"id": order_id, "status": "accepted", "source": "demo"}
+        if not self.settings.has_alpaca_credentials:
+            raise AlpacaCredentialError("Set ALPACA_API_KEY and ALPACA_SECRET_KEY to use Alpaca.")
+        return _model_dump(self._get_trading_client().get_order_by_id(order_id))
 
     def option_chain(self, symbol: str) -> dict[str, Any]:
         if self.settings.demo_mode:
@@ -136,6 +177,47 @@ def _model_dump(value: Any) -> dict[str, Any]:
     if hasattr(value, "dict"):
         return value.dict()
     return dict(value)
+
+
+def _build_order_request(payload: dict[str, Any]) -> Any:
+    from alpaca.trading.enums import OrderClass, OrderSide, PositionIntent, TimeInForce
+    from alpaca.trading.requests import LimitOrderRequest, OptionLegRequest
+
+    client_order_id = payload.get("client_order_id")
+    if payload.get("order_class") == "mleg":
+        legs = [
+            OptionLegRequest(
+                symbol=leg["symbol"],
+                side=OrderSide.BUY if leg["side"] == "buy" else OrderSide.SELL,
+                ratio_qty=float(leg.get("ratio_qty", 1)),
+                position_intent=_position_intent(leg["side"]),
+            )
+            for leg in payload["legs"]
+        ]
+        return LimitOrderRequest(
+            qty=float(payload["qty"]),
+            order_class=OrderClass.MLEG,
+            time_in_force=TimeInForce.DAY,
+            limit_price=float(payload["limit_price"]),
+            legs=legs,
+            client_order_id=client_order_id,
+        )
+
+    return LimitOrderRequest(
+        symbol=payload["symbol"],
+        qty=float(payload["qty"]),
+        side=OrderSide.BUY if payload["side"] == "buy" else OrderSide.SELL,
+        time_in_force=TimeInForce.DAY,
+        limit_price=float(payload["limit_price"]),
+        client_order_id=client_order_id,
+        position_intent=_position_intent(payload["side"]),
+    )
+
+
+def _position_intent(side: str) -> Any:
+    from alpaca.trading.enums import PositionIntent
+
+    return PositionIntent.BUY_TO_OPEN if side == "buy" else PositionIntent.SELL_TO_OPEN
 
 
 def _sdk_base_url(url: str) -> str:
