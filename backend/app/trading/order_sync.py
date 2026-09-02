@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from app.alpaca_client import AlpacaGateway
@@ -9,6 +10,11 @@ from app.storage.audit import (
     list_orders_needing_sync,
     record_agent_event,
     update_order_response,
+)
+
+_ALPACA_ORDER_ID = re.compile(
+    r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+    re.IGNORECASE,
 )
 
 
@@ -41,8 +47,12 @@ def sync_order(gateway: AlpacaGateway, order_id: str) -> dict[str, Any]:
     if stored is None:
         raise ValueError(f"Order {order_id} was not found in the audit log.")
 
+    alpaca_order_id = _resolve_alpaca_order_id(stored)
+    if alpaca_order_id is None:
+        raise ValueError(f"Order {order_id} does not have a syncable Alpaca order id.")
+
     previous = stored.get("response") or {}
-    latest = gateway.get_order(order_id)
+    latest = gateway.get_order(alpaca_order_id)
     merged = {**previous, **latest}
     update_order_response(order_id, merged)
     summary = classify_order_status(merged)
@@ -69,7 +79,30 @@ def sync_order(gateway: AlpacaGateway, order_id: str) -> dict[str, Any]:
 
 def sync_open_orders(gateway: AlpacaGateway, limit: int = 50) -> list[dict[str, Any]]:
     pending = list_orders_needing_sync(limit=limit)
-    return [sync_order(gateway, order["order_id"]) for order in pending]
+    synced: list[dict[str, Any]] = []
+    for order in pending:
+        if _resolve_alpaca_order_id(order) is None:
+            continue
+        try:
+            synced.append(sync_order(gateway, order["order_id"]))
+        except Exception as exc:
+            synced.append(
+                {
+                    "order_id": order["order_id"],
+                    "status": "sync_failed",
+                    "error": str(exc),
+                    "is_terminal": False,
+                }
+            )
+    return synced
+
+
+def _resolve_alpaca_order_id(stored: dict[str, Any]) -> str | None:
+    response = stored.get("response") or {}
+    candidate = str(response.get("id") or stored.get("order_id") or "").strip()
+    if _ALPACA_ORDER_ID.match(candidate):
+        return candidate
+    return None
 
 
 def _qty(value: Any) -> float | None:

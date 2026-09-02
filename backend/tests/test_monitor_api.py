@@ -42,7 +42,7 @@ def test_order_sync_endpoint(monkeypatch):
             "legs": [{"symbol": "SPY260918C00640000", "side": "buy", "bid": 5.0, "ask": 5.2}],
         },
     )
-    order_id = f"demo-order-{uuid4().hex[:8]}"
+    order_id = str(uuid4())
     record_order(
         run_id,
         "FDA-TEST-SYNC-001",

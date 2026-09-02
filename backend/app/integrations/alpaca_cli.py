@@ -31,7 +31,10 @@ DEFAULT_PROOF_COMMANDS: tuple[CliCommandSpec, ...] = (
     CliCommandSpec(("position", "list"), "positions"),
     CliCommandSpec(("order", "list", "--status", "open"), "open_orders"),
     CliCommandSpec(("clock",), "clock"),
-    CliCommandSpec(("data", "option", "chain", "--underlying", "SPY"), "options_chain"),
+    CliCommandSpec(
+        ("data", "option", "chain", "--underlying-symbol", "SPY", "--limit", "5"),
+        "options_chain",
+    ),
 )
 
 

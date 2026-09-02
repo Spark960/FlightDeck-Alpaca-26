@@ -1,4 +1,5 @@
 from collections.abc import Callable
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from app.config import Settings
@@ -86,9 +87,28 @@ class AlpacaGateway:
 
         from alpaca.trading.requests import GetOptionContractsRequest
 
+        start, end = _option_expiration_window()
         client = self._get_trading_client()
-        contracts = client.get_option_contracts(GetOptionContractsRequest(underlying_symbols=[symbol]))
-        return _model_dump(contracts)
+        contracts: list[dict[str, Any]] = []
+        page_token: str | None = None
+        for _ in range(10):
+            payload = _model_dump(
+                client.get_option_contracts(
+                    GetOptionContractsRequest(
+                        underlying_symbols=[symbol],
+                        expiration_date_gte=start,
+                        expiration_date_lte=end,
+                        limit=1000,
+                        page_token=page_token,
+                    )
+                )
+            )
+            batch = payload.get("option_contracts") or payload.get("contracts") or []
+            contracts.extend(batch)
+            page_token = payload.get("next_page_token")
+            if not page_token:
+                break
+        return {"option_contracts": contracts, "next_page_token": page_token}
 
     def submit_order(self, payload: dict[str, Any]) -> dict[str, Any]:
         if self.settings.demo_mode:
@@ -115,8 +135,15 @@ class AlpacaGateway:
 
         from alpaca.data.requests import OptionChainRequest
 
+        start, end = _option_expiration_window()
         client = self._get_option_client()
-        chain = client.get_option_chain(OptionChainRequest(underlying_symbol=symbol))
+        chain = client.get_option_chain(
+            OptionChainRequest(
+                underlying_symbol=symbol,
+                expiration_date_gte=start,
+                expiration_date_lte=end,
+            )
+        )
         return {contract: _model_dump(snapshot) for contract, snapshot in chain.items()}
 
     def _with_trading_client(
@@ -218,6 +245,13 @@ def _position_intent(side: str) -> Any:
     from alpaca.trading.enums import PositionIntent
 
     return PositionIntent.BUY_TO_OPEN if side == "buy" else PositionIntent.SELL_TO_OPEN
+
+
+def _option_expiration_window() -> tuple[str, str]:
+    today = datetime.now(tz=UTC).date()
+    start = today + timedelta(days=7)
+    end = today + timedelta(days=30)
+    return start.isoformat(), end.isoformat()
 
 
 def _sdk_base_url(url: str) -> str:

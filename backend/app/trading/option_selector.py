@@ -143,21 +143,65 @@ def _chain_by_symbol(chain_payload: dict[str, Any]) -> dict[str, Any]:
 
 
 def _select_call_pair(contracts: list[dict[str, Any]]) -> tuple[dict[str, Any], dict[str, Any]] | None:
-    ascending = sorted(contracts, key=lambda contract: contract["strike"])
-    for index, long_leg in enumerate(ascending):
-        for short_leg in ascending[index + 1 :]:
-            if short_leg["strike"] > long_leg["strike"]:
-                return long_leg, short_leg
-    return None
+    return _select_spread_pair(contracts, option_type="call")
 
 
 def _select_put_pair(contracts: list[dict[str, Any]]) -> tuple[dict[str, Any], dict[str, Any]] | None:
-    descending = sorted(contracts, key=lambda contract: contract["strike"], reverse=True)
-    for index, long_leg in enumerate(descending):
-        for short_leg in descending[index + 1 :]:
-            if short_leg["strike"] < long_leg["strike"]:
-                return long_leg, short_leg
+    return _select_spread_pair(contracts, option_type="put")
+
+
+def _select_spread_pair(
+    contracts: list[dict[str, Any]],
+    option_type: str,
+) -> tuple[dict[str, Any], dict[str, Any]] | None:
+    preferred_width = 5.0
+    max_width = 15.0
+    ranked_long = sorted(contracts, key=lambda contract: _moneyness_rank(contract, option_type))
+    best: tuple[float, dict[str, Any], dict[str, Any]] | None = None
+
+    for long_leg in ranked_long:
+        if not _delta_in_long_range(long_leg.get("delta"), option_type):
+            continue
+        for short_leg in contracts:
+            if option_type == "call" and not (short_leg["strike"] > long_leg["strike"]):
+                continue
+            if option_type == "put" and not (short_leg["strike"] < long_leg["strike"]):
+                continue
+            width = abs(short_leg["strike"] - long_leg["strike"])
+            if width <= 0 or width > max_width:
+                continue
+            if not _delta_in_short_range(short_leg.get("delta"), option_type):
+                continue
+            score = abs(width - preferred_width) + _moneyness_rank(long_leg, option_type)
+            if best is None or score < best[0]:
+                best = (score, long_leg, short_leg)
+
+    if best is not None:
+        return best[1], best[2]
+
+    for long_leg in ranked_long:
+        for short_leg in contracts:
+            if option_type == "call" and short_leg["strike"] > long_leg["strike"]:
+                width = short_leg["strike"] - long_leg["strike"]
+                if 0 < width <= max_width:
+                    return long_leg, short_leg
+            if option_type == "put" and short_leg["strike"] < long_leg["strike"]:
+                width = long_leg["strike"] - short_leg["strike"]
+                if 0 < width <= max_width:
+                    return long_leg, short_leg
     return None
+
+
+def _delta_in_long_range(delta: float | None, option_type: str) -> bool:
+    if delta is None:
+        return True
+    return 0.30 <= abs(delta) <= 0.65
+
+
+def _delta_in_short_range(delta: float | None, option_type: str) -> bool:
+    if delta is None:
+        return True
+    return 0.15 <= abs(delta) <= 0.45
 
 
 def _select_single_leg(
