@@ -1,83 +1,152 @@
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
+﻿import {
+  AccountInfo,
+  AuditRunDetail,
+  AuditRunItem,
+  CliCommandResponse,
+  CliRunResponse,
+  CliStatusResponse,
+  ExecuteTradeResponse,
+  HealthResponse,
+  MarketClock,
+  MonitorResponse,
+  Order,
+  Position,
+  ProposalReviewResponse,
+  PublicSettings,
+  RiskCheckResponse,
+  ScanResponse,
+  TradeProposal,
+} from "../types/api";
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_BASE}${path}`, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      ...(init?.headers ?? {}),
-    },
-  });
-  if (!response.ok) {
-    let detail = response.statusText;
-    try {
-      const body = (await response.json()) as { detail?: string };
-      detail = body.detail ?? detail;
-    } catch {
-      // ignore parse errors
-    }
-    throw new Error(detail || `Request failed (${response.status})`);
+const BASE_URL = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/+$/, "");
+
+async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const url = `${BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
+  const headers = new Headers(options.headers || {});
+  
+  if (!headers.has("Accept")) {
+    headers.set("Accept", "application/json");
   }
+  if (options.body && !(options.body instanceof FormData) && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
+
+  const response = await fetch(url, {
+    ...options,
+    headers,
+  });
+
+  if (!response.ok) {
+    let errorDetail = `Request failed: ${response.status} ${response.statusText}`;
+    try {
+      const errorJson = await response.json();
+      errorDetail = errorJson.detail || errorJson.message || JSON.stringify(errorJson);
+    } catch {
+      // not a json response
+    }
+    throw new Error(errorDetail);
+  }
+
   return response.json() as Promise<T>;
 }
 
-export type AppSettings = {
-  app: string;
-  environment: string;
-  paper_mode: boolean;
-  demo_mode: boolean;
-  alpaca_credentials_configured: boolean;
-  agent_credentials_configured: boolean;
-  agent_model: string;
-  alpaca_cli_binary: string;
-};
-
-export type AuditRun = {
-  run_id: string;
-  run_type: string;
-  status: string;
-  started_at: string;
-  completed_at: string | null;
-  summary: Record<string, unknown>;
-};
-
-export type AuditRunDetail = AuditRun & {
-  market_snapshots: Array<Record<string, unknown>>;
-  option_chains: Array<Record<string, unknown>>;
-  trade_proposals: Array<Record<string, unknown>>;
-  risk_checks: Array<Record<string, unknown>>;
-  orders: Array<Record<string, unknown>>;
-  position_snapshots: Array<Record<string, unknown>>;
-  agent_events: Array<Record<string, unknown>>;
-};
-
 export const api = {
-  health: () => request<{ status: string; demo_mode: boolean }>("/health"),
-  settings: () => request<AppSettings>("/api/settings"),
-  account: () => request<Record<string, string>>("/api/account"),
-  clock: () => request<Record<string, unknown>>("/api/clock"),
-  positions: () => request<Array<Record<string, string>>>("/api/positions"),
-  orders: () => request<Array<Record<string, string>>>("/api/orders"),
-  scan: (limit = 5) =>
-    request<Record<string, unknown>>("/api/scan", {
+  // System & Health
+  getHealth: () => request<HealthResponse>("/health"),
+  getSettings: () => request<PublicSettings>("/api/settings"),
+
+  // Account & Clock
+  getAccount: () => request<AccountInfo>("/api/account"),
+  getClock: () => request<MarketClock>("/api/clock"),
+  getPositions: () => request<Position[]>("/api/positions"),
+  getOrders: () => request<Order[]>("/api/orders"),
+
+  // Scanner & Candidates
+  scanMarket: (symbols?: string[], limit: number = 5) =>
+    request<ScanResponse>("/api/scan", {
       method: "POST",
-      body: JSON.stringify({ limit }),
+      body: JSON.stringify({ symbols, limit }),
     }),
-  auditRuns: (limit = 50) => request<AuditRun[]>(`/api/audit/runs?limit=${limit}`),
-  auditRun: (runId: string) => request<AuditRunDetail>(`/api/audit/runs/${runId}`),
-  monitorLatest: () =>
-    request<{
-      decisions: Array<Record<string, unknown>>;
-      alerts: Array<Record<string, unknown>>;
-      actions: Array<Record<string, unknown>>;
-    }>("/api/monitor/latest"),
-  monitorRun: (params?: { sync_orders?: boolean; cli_proof?: boolean }) => {
+
+  // Market Snapshot & Option Chain
+  getMarketSnapshot: (symbols: string[]) =>
+    request<Record<string, any>>(`/api/market/snapshot?symbols=${encodeURIComponent(symbols.join(","))}`),
+  getOptionContracts: (symbol: string) =>
+    request<Record<string, any>>(`/api/options/contracts/${symbol.toUpperCase()}`),
+  getOptionChain: (symbol: string) =>
+    request<Record<string, any>>(`/api/options/chain/${symbol.toUpperCase()}`),
+
+  // Trade Proposals
+  createProposal: (symbol: string, direction: "bullish" | "bearish" = "bullish", max_debit: number = 1500) =>
+    request<TradeProposal>("/api/proposals", {
+      method: "POST",
+      body: JSON.stringify({ symbol: symbol.toUpperCase(), direction, max_debit }),
+    }),
+  getProposal: (proposalId: string) =>
+    request<TradeProposal>(`/api/proposals/${proposalId}`),
+  reviewProposal: (params: { proposal?: any; proposal_id?: string; market_candidate?: any }) =>
+    request<ProposalReviewResponse>("/api/proposals/review", {
+      method: "POST",
+      body: JSON.stringify(params),
+    }),
+
+  // Risk Gates
+  checkRisk: (params: { proposal?: any; proposal_id?: string }) =>
+    request<RiskCheckResponse>("/api/risk/check", {
+      method: "POST",
+      body: JSON.stringify(params),
+    }),
+
+  // Trade Execution
+  executeTrade: (proposalId: string, dryRun: boolean = true) =>
+    request<ExecuteTradeResponse>(`/api/trades/execute/${proposalId}?dry_run=${dryRun}`, {
+      method: "POST",
+    }),
+  syncOrders: () =>
+    request<{ run_id: string; synced: Order[] }>("/api/trades/sync", {
+      method: "POST",
+    }),
+  getOrderStatus: (orderId: string, refresh: boolean = false) =>
+    request<{ order_id: string; stored: any; sync_result: any }>(
+      `/api/trades/orders/${orderId}/status?refresh=${refresh}`
+    ),
+
+  // Autonomous Position Monitor
+  runMonitor: (params: {
+    sync_orders?: boolean;
+    cli_proof?: boolean;
+    execute_closes?: boolean;
+    dry_run?: boolean;
+  } = {}) => {
     const query = new URLSearchParams();
-    if (params?.sync_orders !== undefined) query.set("sync_orders", String(params.sync_orders));
-    if (params?.cli_proof !== undefined) query.set("cli_proof", String(params.cli_proof));
-    const suffix = query.toString() ? `?${query}` : "";
-    return request<Record<string, unknown>>(`/api/monitor/run${suffix}`, { method: "POST" });
+    if (params.sync_orders !== undefined) query.set("sync_orders", String(params.sync_orders));
+    if (params.cli_proof !== undefined) query.set("cli_proof", String(params.cli_proof));
+    if (params.execute_closes !== undefined) query.set("execute_closes", String(params.execute_closes));
+    if (params.dry_run !== undefined) query.set("dry_run", String(params.dry_run));
+    return request<MonitorResponse>(`/api/monitor/run?${query.toString()}`, {
+      method: "POST",
+    });
   },
-  cliStatus: () => request<Record<string, unknown>>("/api/integrations/cli/status"),
-  cliRun: () => request<Record<string, unknown>>("/api/integrations/cli/run", { method: "POST" }),
+  getLatestMonitorEvents: (limit: number = 20) =>
+    request<{ decisions: any[]; alerts: any[]; actions: any[] }>(`/api/monitor/latest?limit=${limit}`),
+
+  // Decision Replay & Audit
+  listRuns: (limit: number = 50) =>
+    request<AuditRunItem[]>(`/api/audit/runs?limit=${limit}`),
+  getRunDetail: (runId: string) =>
+    request<AuditRunDetail>(`/api/audit/runs/${runId}`),
+
+  // Alpaca CLI Integration Proof
+  getCliStatus: () => request<CliStatusResponse>("/api/integrations/cli/status"),
+  getCliLatest: (limit: number = 20) =>
+    request<any[]>(`/api/integrations/cli/latest?limit=${limit}`),
+  runCliProof: () =>
+    request<CliRunResponse>("/api/integrations/cli/run", {
+      method: "POST",
+    }),
+  runCliCommand: (args: string[]) =>
+    request<CliCommandResponse>("/api/integrations/cli/command", {
+      method: "POST",
+      body: JSON.stringify({ args }),
+    }),
 };

@@ -1,5 +1,6 @@
 from functools import lru_cache
 from pathlib import Path
+import os
 
 from dotenv import load_dotenv
 from pydantic import Field
@@ -36,6 +37,10 @@ class Settings:
     monitor_action_cooldown_hours: int = Field(default=24)
     alpaca_cli_binary: str = Field(default="alpaca")
     cors_origins: list[str] = Field(default_factory=lambda: ["http://localhost:5173"])
+    scheduler_enabled: bool = Field(default=False)
+    scheduler_interval_minutes: int = Field(default=15, ge=1, le=240)
+    scheduler_market_hours_only: bool = Field(default=True)
+    static_dir: str | None = Field(default=None)
 
     @property
     def has_alpaca_credentials(self) -> bool:
@@ -81,6 +86,18 @@ def get_settings() -> Settings:
         expiration_risk_days=_env_int("EXPIRATION_RISK_DAYS", 3),
         monitor_action_cooldown_hours=_env_int("MONITOR_ACTION_COOLDOWN_HOURS", 24),
         alpaca_cli_binary=_env_str("ALPACA_CLI_BINARY", "alpaca") or "alpaca",
+        scheduler_enabled=_env_bool("SCHEDULER_ENABLED", default=False),
+        scheduler_interval_minutes=_env_int("SCHEDULER_INTERVAL_MINUTES", 15),
+        static_dir=_env_str("STATIC_DIR")
+        or (
+            str(Path(__file__).resolve().parents[2] / "frontend" / "dist")
+            if (Path(__file__).resolve().parents[2] / "frontend" / "dist").is_dir()
+            else (
+                str(Path(__file__).resolve().parents[1] / "static")
+                if (Path(__file__).resolve().parents[1] / "static").is_dir()
+                else None
+            )
+        ),
     )
 
 

@@ -1,0 +1,97 @@
+# Fly.io configuration for FlightDeck Alpha.
+#
+# One app, one URL, one Dockerfile. The FastAPI process serves both the
+# REST API (under /api and /health) and the built Vite SPA (everywhere else)
+# from the same origin, so judges see a single https://<app>.fly.dev URL.
+#
+# `fly deploy` builds the image from the Dockerfile in this directory and
+# starts a single always-on machine. The SQLite audit database lives on a
+# persistent volume mounted at /data.
+
+app = "flightdeck-alpha"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[deploy]
+  release_command = "echo 'release ok'"
+  strategy = "rolling"
+
+[env]
+  APP_NAME = "FlightDeck Alpha"
+  ENVIRONMENT = "production"
+  ALPACA_PAPER = "true"
+  ALPACA_TRADING_BASE_URL = "https://paper-api.alpaca.markets/v2"
+  ALPACA_DATA_BASE_URL = "https://data.alpaca.markets"
+  AGENT_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
+  AGENT_MODEL = "gemini-3.7-flash"
+  STATIC_DIR = "/app/static"
+  DATABASE_URL = "sqlite:////data/flightdeck_alpha.db"
+  MAX_RISK_PER_TRADE_PCT = "1.5"
+  MAX_DAILY_LOSS_PCT = "3.0"
+  MAX_DRAWDOWN_PCT = "8.0"
+  MAX_OPEN_OPTION_TRADES = "5"
+  MAX_SAME_UNDERLYING_TRADES = "2"
+  MAX_TOTAL_PREMIUM_PCT = "20.0"
+  TAKE_PROFIT_PCT = "50.0"
+  STOP_LOSS_PCT = "50.0"
+  TIME_STOP_DAYS = "14"
+  EXPIRATION_RISK_DAYS = "3"
+  MONITOR_ACTION_COOLDOWN_HOURS = "24"
+  LOG_LEVEL = "INFO"
+  CORS_ORIGINS = "https://flightdeck-alpha.fly.dev,http://localhost:5173"
+  # The autonomous scheduler is OFF by default. Flip SCHEDULER_ENABLED to
+  # "true" in `fly secrets set` once the final paper account is wired up
+  # and you want the cockpit to accumulate audit data on its own.
+  SCHEDULER_ENABLED = "false"
+  SCHEDULER_INTERVAL_MINUTES = "15"
+  SCHEDULER_MARKET_HOURS_ONLY = "true"
+
+# Secrets are NOT set here. Run, for example:
+#   fly secrets set ALPACA_API_KEY=... ALPACA_SECRET_KEY=... GEMINI_API_KEY=...
+# The free Fly plan does not require a credit card for three shared VMs
+# and a 1 GB volume, which is plenty for the hackathon.
+
+[[services]]
+  protocol = "tcp"
+  internal_port = 8000
+  auto_stop_machines = "off"
+  auto_start_machines = "true"
+  min_machines_running = 1
+
+  [[services.ports]]
+    port = 80
+    handlers = ["http"]
+    force_https = true
+
+  [[services.ports]]
+    port = 443
+    handlers = ["tls", "http"]
+
+  [services.concurrency]
+    type = "connections"
+    hard_limit = 50
+    soft_limit = 25
+
+  [[services.tcp_checks]]
+    interval = "15s"
+    timeout = "2s"
+    grace_period = "10s"
+
+  [[services.http_checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "20s"
+    method = "get"
+    path = "/health"
+
+[[mounts]]
+  source = "flightdeck_alpha_data"
+  destination = "/data"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
+  cpus = 1
+  cpu_kind = "shared"
