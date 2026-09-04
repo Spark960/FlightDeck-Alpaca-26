@@ -174,6 +174,13 @@ export const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) =>
         </div>
       )}
 
+      {/* Render Cold Start Intimation */}
+      {loading && !account && !error && (
+        <div className="bg-y text-ink text-[12px] font-mono font-bold px-4 py-3 border-b-2 border-rule flex items-center justify-center blink">
+          â–¶ BOOTING AI BACKEND ON RENDER... PLEASE ALLOW 30-50 SECONDS FOR COLD START â—€
+        </div>
+      )}
+
       {/* Content */}
       <main className="flex-1 overflow-y-auto">
         <div className="max-w-[1440px] mx-auto p-4 md:p-5 space-y-4">
