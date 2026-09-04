@@ -19,7 +19,7 @@ COPY frontend/ ./
 RUN npm run build
 
 # ---- Stage 2: install Alpaca CLI binary -----------------------------------
-FROM golang:1.23-alpine AS alpaca-cli-build
+FROM golang:1.24-alpine AS alpaca-cli-build
 RUN apk add --no-cache git
 RUN go install github.com/alpacahq/cli/cmd/alpaca@latest
 
