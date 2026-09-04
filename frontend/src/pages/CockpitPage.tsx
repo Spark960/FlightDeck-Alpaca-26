@@ -152,7 +152,7 @@ export const CockpitPage: React.FC = () => {
       logLine("[03/05] AI ANALYST + CRITIC REVIEW...");
       const rev = await api.reviewProposal({ proposal: p, proposal_id: p.proposal_id, market_candidate: top });
       setReview(rev);
-      logLine(`[03/05] VERDICT: ${rev.critic.verdict.toUpperCase()}`);
+      logLine(`[03/05] VERDICT: ${(rev.critic.verdict ?? "unknown").toUpperCase()}`);
 
       logLine("[04/05] EVALUATING 18 RISK GATES...");
       const risk = await api.checkRisk({ proposal: p, proposal_id: p.proposal_id });
@@ -305,7 +305,7 @@ export const CockpitPage: React.FC = () => {
                         <div className="col-span-3">
                           <div className={`font-bold text-[13px] ${sel ? "text-ink" : ""}`}>{cand.symbol}</div>
                           <div className={`text-[9px] tabular-nums ${sel ? "text-rule2" : "text-muted"}`}>
-                            {cand.price != null ? `$${Number(cand.price).toFixed(2)}` : "—"}
+                            {cand.features?.last_price != null ? `$${Number(cand.features.last_price).toFixed(2)}` : "—"}
                           </div>
                         </div>
                         <div className="col-span-2">
@@ -316,21 +316,21 @@ export const CockpitPage: React.FC = () => {
                           }`}>
                             {bull && <ArrowUpRight className="w-3 h-3" />}
                             {bear && <ArrowDownRight className="w-3 h-3" />}
-                            {cand.direction.toUpperCase().slice(0,4)}
+                            {(cand.direction ?? "none").toUpperCase().slice(0,4)}
                           </span>
                         </div>
                         <div className={`col-span-2 font-bold text-[11px] tabular-nums ${sel ? "text-ink" : "text-paper"}`}>
-                          {cand.score != null ? Number(cand.score).toFixed(2) : "—"}
+                          {cand.best_score != null ? Number(cand.best_score).toFixed(2) : "—"}
                         </div>
                         <div className={`col-span-2 text-right font-bold text-[11px] tabular-nums ${
-                          (cand.return_1d ?? 0) >= 0
+                          (cand.features?.one_day_return_pct ?? 0) >= 0
                             ? (sel ? "text-[#006600]" : "text-pos")
                             : (sel ? "text-[#880000]" : "text-neg")
                         }`}>
-                          {cand.return_1d != null ? (Number(cand.return_1d) * 100).toFixed(2) + "%" : "—"}
+                          {cand.features?.one_day_return_pct != null ? Number(cand.features.one_day_return_pct).toFixed(2) + "%" : "—"}
                         </div>
                         <div className={`col-span-3 text-right text-[10px] tabular-nums ${sel ? "text-muted" : "text-muted"}`}>
-                          {cand.volume_ratio != null ? Number(cand.volume_ratio).toFixed(2) : "1.0"}x
+                          {cand.features?.volume_ratio != null ? Number(cand.features.volume_ratio).toFixed(2) : "1.0"}x
                         </div>
                       </div>
                     );
@@ -511,7 +511,7 @@ export const CockpitPage: React.FC = () => {
                   </div>
                   {review && (
                     <StatusBadge variant={review.critic.passed ? "ok" : "danger"} size="sm">
-                      {review.critic.verdict.toUpperCase()}
+                      {(review.critic.verdict ?? "unknown").toUpperCase()}
                     </StatusBadge>
                   )}
                 </div>

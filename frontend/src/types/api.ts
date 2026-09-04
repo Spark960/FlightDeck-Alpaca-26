@@ -98,19 +98,34 @@ export interface Order {
   legs?: Order[];
 }
 
+export interface MarketCandidateFeatures {
+  intraday_return_pct: number;
+  one_day_return_pct: number;
+  five_day_return_pct: number;
+  volume_ratio: number;
+  ma20_slope_pct: number;
+  volatility_proxy_pct: number;
+  bid_ask_spread_pct: number;
+  minute_volume: number | null;
+  quote_fresh: boolean;
+  last_price: number | null;
+}
+
 export interface MarketCandidate {
   symbol: string;
-  score: number;
+  /** Score used for ranking — field name from backend is `best_score` */
+  best_score: number;
+  /** Kept for backward compat; same as best_score when mapped */
+  score?: number;
   direction: "bullish" | "bearish" | "none";
-  price: number;
-  return_1d: number;
-  return_5d: number;
-  intraday_return: number;
-  gap_pct: number;
-  volume_ratio: number;
-  reasons: string[];
+  bullish_score: number;
+  bearish_score: number;
+  volatility_score: number;
+  features: MarketCandidateFeatures;
+  reason_codes: string[];
+  /** Kept for backward compat */
+  reasons?: string[];
   rejection_reason?: string;
-  quote_age_seconds: number;
 }
 
 export interface ScanResponse {
