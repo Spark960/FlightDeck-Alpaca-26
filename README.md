@@ -31,6 +31,12 @@ Every scan, AI thesis, risk check, and order is logged. The React frontend featu
 
 ---
 
+## 🏗️ Architecture
+
+![FlightDeck Alpha Architecture](docs/architecture.jpg)
+
+---
+
 ## 💻 Tech Stack
 * **Frontend:** React, Vite, Tailwind CSS, TypeScript
 * **Backend:** FastAPI, Python 3.12, Uvicorn
