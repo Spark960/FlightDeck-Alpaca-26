@@ -181,7 +181,7 @@ export const PositionsPage: React.FC = () => {
                         variant={dec.action === "hold" ? "ok" : dec.should_close ? "danger" : "warn"}
                         size="sm"
                       >
-                        {dec.action.toUpperCase()}
+                        {(dec.action ?? "—").toUpperCase()}
                       </StatusBadge>
                       <span className="text-muted font-normal">{dec.reason}</span>
                     </div>
@@ -249,7 +249,7 @@ export const PositionsPage: React.FC = () => {
                         {pos.market_value != null ? `$${Number(pos.market_value).toFixed(2)}` : "—"}
                       </td>
                       <td className={`px-3 py-3 font-bold tabular-nums ${isPos ? "text-pos" : "text-neg"}`}>
-                        {isPos ? "+" : ""}{Number(pos.unrealized_pl).toFixed(2) ?? "0.00"}
+                        {isPos ? "+" : ""}{(Number(pos.unrealized_pl) || 0).toFixed(2)}
                         <div className="text-[9px] opacity-70">{isPos ? "+" : ""}{plPct.toFixed(2)}%</div>
                       </td>
                       <td className="px-3 py-3 w-16">
@@ -303,7 +303,7 @@ export const PositionsPage: React.FC = () => {
                   <tr key={ord.id} className="hover:bg-rule2">
                     <td className="px-3 py-3">
                       <div className="text-info font-bold truncate max-w-[120px]" title={ord.id}>
-                        {ord.id.slice(0, 8)}…
+                        {(ord.id ?? "").slice(0, 8)}…
                       </div>
                       <div className="text-[9px] text-rule2 truncate">{ord.client_order_id || "—"}</div>
                     </td>
@@ -321,7 +321,7 @@ export const PositionsPage: React.FC = () => {
                         }
                         size="sm"
                       >
-                        {ord.status.toUpperCase()}
+                        {(ord.status ?? "unknown").toUpperCase()}
                       </StatusBadge>
                     </td>
                     <td className="px-3 py-3 font-bold text-paper tabular-nums">

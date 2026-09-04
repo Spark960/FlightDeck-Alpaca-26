@@ -24,7 +24,7 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
         // NO DATA
       </div>
       <div className="font-mono font-bold text-base text-paper">
-        {title.toUpperCase()}
+        {(title ?? "").toUpperCase()}
       </div>
       {description && (
         <p className="text-[11px] font-mono text-muted leading-relaxed max-w-sm">

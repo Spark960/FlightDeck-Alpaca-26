@@ -38,6 +38,14 @@ const FILTERS = [
   { id: "position_monitor",label: "MONITOR" },
 ];
 
+/** Returns a formatted date string or "—" if the input is invalid/missing. */
+const safeDate = (ts: string | undefined | null, format: "time" | "full" = "full"): string => {
+  if (!ts) return "—";
+  const d = new Date(ts);
+  if (isNaN(d.getTime())) return "—";
+  return format === "time" ? d.toLocaleTimeString() : d.toLocaleString();
+};
+
 export const ReplayPage: React.FC = () => {
   const [runs,          setRuns]          = useState<AuditRunItem[]>([]);
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
@@ -72,7 +80,7 @@ export const ReplayPage: React.FC = () => {
 
   const filtered = runs.filter(r =>
     (filterType === "all" || r.run_type === filterType) &&
-    (!searchTerm || r.run_id.toLowerCase().includes(searchTerm.toLowerCase()) || r.run_type.toLowerCase().includes(searchTerm.toLowerCase()))
+    (!searchTerm || (r.run_id ?? "").toLowerCase().includes(searchTerm.toLowerCase()) || (r.run_type ?? "").toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
@@ -163,10 +171,10 @@ export const ReplayPage: React.FC = () => {
                           className="font-mono font-bold text-[9px] uppercase border-2 px-1.5 py-0.5"
                           style={{ color: cfg?.color ?? "#FFFFFF", borderColor: cfg?.color ?? "#333333" }}
                         >
-                          {cfg?.label ?? r.run_type.toUpperCase()}
+                          {cfg?.label ?? (r.run_type ?? "unknown").toUpperCase()}
                         </span>
                         <span className="font-mono text-[9px] text-rule2 font-bold">
-                          {new Date(r.started_at).toLocaleTimeString()}
+                          {safeDate(r.started_at, "time")}
                         </span>
                       </div>
                       <div className="mt-1 font-mono text-[10px] font-bold text-paper truncate" title={r.run_id}>
@@ -204,12 +212,12 @@ export const ReplayPage: React.FC = () => {
                         borderColor: TYPE_CFG[runDetail.run_type]?.color ?? "#333333",
                       }}
                     >
-                      {TYPE_CFG[runDetail.run_type]?.label ?? runDetail.run_type.toUpperCase()}
+                      {TYPE_CFG[runDetail.run_type]?.label ?? (runDetail.run_type ?? "unknown").toUpperCase()}
                     </span>
                     <span className="font-mono font-bold text-[12px] text-paper">{runDetail.run_id}</span>
                   </div>
                   <div className="mt-1 font-mono text-[9px] text-muted font-bold uppercase">
-                    {new Date(runDetail.started_at).toLocaleString()}
+                    {safeDate(runDetail.started_at, "full")}
                   </div>
                 </div>
                 <button
@@ -259,7 +267,7 @@ export const ReplayPage: React.FC = () => {
                         <div key={i} className="px-3 py-2.5">
                           <div className="flex items-center justify-between font-mono text-[10px]">
                             <span className="font-bold text-violet uppercase">{ev.event_type}</span>
-                            <span className="text-rule2">{new Date(ev.created_at).toLocaleTimeString()}</span>
+                            <span className="text-rule2">{safeDate(ev.created_at, "time")}</span>
                           </div>
                           {ev.payload?.thesis   && <p className="text-[11px] text-muted italic mt-1">"{ev.payload.thesis}"</p>}
                           {ev.payload?.critique && <p className="text-[11px] text-muted mt-1">{ev.payload.critique}</p>}
@@ -287,7 +295,7 @@ export const ReplayPage: React.FC = () => {
                   body: () => (
                     <div className="grid grid-cols-3 gap-0 divide-x-2 divide-rule2 font-mono text-[10px]">
                       {[
-                        { l: "ORDER_ID", v: `${runDetail.order?.order_id?.slice(0, 12)}…`, c: "text-pos" },
+                        { l: "ORDER_ID", v: runDetail.order?.order_id ? `${runDetail.order.order_id.slice(0, 12)}…` : "—", c: "text-pos" },
                         { l: "CLIENT",   v: runDetail.order?.client_order_id ?? "—",        c: "text-paper" },
                         { l: "STATUS",   v: runDetail.order?.response_payload?.status ?? "submitted", c: "text-info" },
                       ].map(({ l, v, c }) => (

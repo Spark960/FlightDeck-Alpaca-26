@@ -391,7 +391,7 @@ export const CockpitPage: React.FC = () => {
                 {/* Summary row */}
                 <div className="grid grid-cols-2 sm:grid-cols-5 border-b-2 border-rule2 divide-x-2 divide-rule2">
                   {[
-                    { l: "STRATEGY", v: proposal.strategy_type.replace(/_/g," ").toUpperCase(), c: "text-paper" },
+                    { l: "STRATEGY", v: (proposal.strategy_type ?? "").replace(/_/g," ").toUpperCase(), c: "text-paper" },
                     { l: "SYMBOL",   v: proposal.underlying_symbol, c: "text-y" },
                     { l: "EXPIRY",   v: proposal.expiration,        c: "text-muted" },
                     { l: "NET DEBIT",v: `$${Number(proposal.net_debit || 0).toFixed(2) ?? "0.00"}`, c: "text-warn" },
@@ -420,7 +420,7 @@ export const CockpitPage: React.FC = () => {
                       <tr key={idx} className="hover:bg-rule2">
                         <td className="px-3 py-2">
                           <span className={`font-bold text-[10px] uppercase ${leg.side === "buy" ? "text-pos" : "text-neg"}`}>
-                            {leg.side.toUpperCase()}
+                            {(leg.side ?? "").toUpperCase()}
                           </span>
                         </td>
                         <td className="px-3 py-2 font-bold text-paper tabular-nums">
