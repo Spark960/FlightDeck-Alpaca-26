@@ -2,7 +2,7 @@
 
 **The thesis: AI can reason, but code should control risk.**
 
-FlightDeck Alpha is an autonomous AI options trading agent built for the **Alpaca AI Trading Agents Hackathon**. It uses Gemini to analyze market setups and propose defined-risk options strategies. However, before any order reaches Alpaca's paper execution, it must survive 18 strict, deterministic risk gates. 
+FlightDeck Alpha is an autonomous AI options trading agent built for the **Alpaca AI Trading Agents Hackathon**. It uses Gemini to analyze market setups and propose defined-risk options strategies. However, before any order reaches Alpaca's paper execution, it must survive 12 strict, deterministic risk gates. 
 
 Everything the agent thinks and executes is recorded into a SQLite database, creating a 100% transparent and replayable audit trail.
 
@@ -21,7 +21,7 @@ Everything the agent thinks and executes is recorded into a SQLite database, cre
 On a cron schedule, the agent pulls live options chains for highly liquid tickers (like SPY, QQQ, AAPL) using the Alpaca Data API. This data is fed to Gemini 3.7 Flash, which acts as our analyst to spot defined-risk setups (debit spreads) and generate a structured trade proposal with a written thesis. 
 
 ### 2. The Deterministic Risk Gates
-The AI is **never** allowed to execute trades on its own. Every proposal hits our Risk Gates. The FastAPI backend runs 18 hardcoded checks (e.g., max daily drawdown, spread width, max premium deployed). It completely blocks naked options. If a proposal fails even one check, it is immediately killed.
+The AI is **never** allowed to execute trades on its own. Every proposal hits our Risk Gates. The FastAPI backend runs 12 hardcoded checks (e.g., max daily drawdown, spread width, max premium deployed). It completely blocks naked options. If a proposal fails even one check, it is immediately killed.
 
 ### 3. Alpaca Execution & CLI Proof
 If approved, the backend executes the paper trade via the Alpaca API. To prove the execution and validate the infrastructure, we also embedded the **Alpaca CLI** directly into the Docker container, verifying live positions via stdout logs.
